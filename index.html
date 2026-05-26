@@ -19,8 +19,7 @@
       
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">📝 ฟอร์มแจ้งซ่อม</h2>
-        
-        <form id="repairForm" action="https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec" method="POST" target="hidden_iframe" onsubmit="submitForm()">
+        <form id="repairForm" action="" method="POST" target="hidden_iframe" onsubmit="submitForm()">
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">ชื่องาน / ฝ่าย</label>
@@ -46,7 +45,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">รายละเอียดปัญหา</label>
-              <textarea name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย..."></textarea>
+              <textarea name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ..."></textarea>
             </div>
             <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm cursor-pointer shadow-sm">
               ส่งข้อมูลแจ้งซ่อม
@@ -57,10 +56,29 @@
       </div>
 
       <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">🔍 รายการสถานะการแจ้งซ่อม</h2>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">🔍 รายการแจ้งซ่อมทั้งหมด</h2>
+          <button onclick="loadTickets()" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg flex items-center gap-1 cursor-pointer">
+            🔄 รีเฟรชข้อมูล
+          </button>
+        </div>
         
-        <div class="w-full h-[450px] overflow-hidden rounded-xl border border-gray-100">
-          <iframe src="https://docs.google.com/spreadsheets/d/1VrAyJzvYTHK5D5JCqW_0HgxBRI6u1l2Dfuu9IYGoZPA/htmlembed?widget=false&headers=false&chrome=false&gid=0" class="w-full h-full border-0"></iframe>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left font-medium text-gray-500">Ticket ID / เวลา</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-500">ผู้แจ้ง / แผนก</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-500">ปัญหา</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-500">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="ticketTableBody" class="divide-y divide-gray-100">
+              <tr>
+                <td colspan="4" class="text-center py-8 text-gray-400">กำลังโหลดตารางข้อมูล...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -68,6 +86,7 @@
   </div>
 
   <script>
+    // ฐานข้อมูลรายชื่อเจ้าหน้าที่ TU RAC
     const tuRacStaffDB = {
       "ฝ่ายบริหาร": ["พรพรรณ สังเกตุการณ์ (จอย)"],
       "งานบริหารการวิจัย": ["วรรณา แก้วพวง (นา)", "น้ำทิพย์ มีขันทอง (นก)", "ศศินันท์ ลิมพวัฒน์ (ชมพู่)", "สุจิตรา เผ่าชวด (ส้ม)", "นภาพร สมภักดี (นัท)", "เพียงนภา สุขสมพงษ์ (ออย)", "รัศมี พิมพ์วันวงศ์ (ตาล)", "กนกวรรณ อบเชย (พิมพ์1)", "รัตนาภรณ์ ศรแก้วดารา (ลูกปลา)", "กรกนก จิรสถิตพรพงศ์ (พิมพ์2)", "ปณิดา ส่งเสริม (ฝน)", "สุธิดา คำสวาสดิ์ (แน๊ต)", "ณัฐณี เงินกระแชง (ชีส)"],
@@ -76,7 +95,13 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
+    // 🔗 🌟 แก้ไข: เอาลิงก์ Web App (URL /exec) ของคุณมาใส่ตรงนี้แทนในเครื่องหมายคำพูดครับ
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
+
     document.addEventListener("DOMContentLoaded", function() {
+      // เซ็ตลิงก์ฟอร์มอัตโนมัติ
+      document.getElementById("repairForm").action = WEB_APP_URL;
+      
       const deptSelect = document.getElementById("departmentSelect");
       Object.keys(tuRacStaffDB).forEach(dept => {
         const option = document.createElement("option");
@@ -84,6 +109,7 @@
         option.text = dept;
         deptSelect.appendChild(option);
       });
+      loadTickets();
     });
 
     function updateNameDropdown() {
@@ -109,6 +135,62 @@
       }
     }
 
+    // 🚀 ฟังก์ชันดึงตารางข้อมูลระดับหรู ด้วยเทคนิคทะลวง CORS (JSONP Script Injection)
+    function loadTickets() {
+      const tbody = document.getElementById("ticketTableBody");
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-400">กำลังโหลดตารางข้อมูล...</td></tr>`;
+      
+      // ลบสคริปต์เก่าออกก่อนดึงใหม่
+      const oldScript = document.getElementById("jsonp-fetcher");
+      if(oldScript) oldScript.remove();
+
+      // สร้างตัวรับสัญญาณทะลุ CORS
+      const script = document.createElement("script");
+      script.id = "jsonp-fetcher";
+      script.src = `${WEB_APP_URL}?action=get&callback=renderTable`;
+      document.body.appendChild(script);
+    }
+
+    // 🎨 ฟังก์ชันวาดตารางหน้าตาคลีนหรูหรา (ตามสเปกรูปภาพที่ 2)
+    function renderTable(response) {
+      const tbody = document.getElementById("ticketTableBody");
+      if (response.status !== "success" || !response.data || response.data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-400">ยังไม่มีข้อมูลการแจ้งซ่อม</td></tr>`;
+        return;
+      }
+
+      let html = "";
+      response.data.forEach(ticket => {
+        let badgeColor = "bg-yellow-100 text-yellow-800";
+        if(ticket.Status === "กำลังดำเนินงาน") badgeColor = "bg-blue-100 text-blue-800";
+        if(ticket.Status === "เสร็จสิ้น") badgeColor = "bg-green-100 text-green-800";
+        if(ticket.Status === "ยกเลิก") badgeColor = "bg-red-100 text-red-800";
+
+        html += `
+          <tr class="hover:bg-gray-50 transition duration-150">
+            <td class="px-4 py-3">
+              <span class="font-bold text-blue-600 block">${ticket["Ticket ID"] || '-'}</span>
+              <span class="text-xs text-gray-400 block mt-0.5">${ticket.Timestamp || '-'}</span>
+            </td>
+            <td class="px-4 py-3">
+              <div class="font-medium text-gray-900">${ticket.Name || '-'}</div>
+              <div class="text-xs text-gray-500 mt-0.5">${ticket.Department || '-'}</div>
+            </td>
+            <td class="px-4 py-3 max-w-xs">
+              <span class="inline-block text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-600 mb-1">${ticket.Category || '-'}</span>
+              <div class="text-gray-600 truncate text-xs" title="${ticket.Description}">${ticket.Description || '-'}</div>
+            </td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${badgeColor}">
+                ${ticket.Status || 'รอดำเนินการ'}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
     function submitForm() {
       const btn = document.getElementById("submitBtn");
       btn.disabled = true;
@@ -117,9 +199,9 @@
       setTimeout(() => {
         Swal.fire({
           title: 'ส่งข้อมูลสำเร็จ!',
-          text: 'ระบบได้บันทึกรายการแจ้งซ่อมเข้า Google Sheets เรียบร้อยแล้วค่ะ',
+          text: 'ระบบบันทึกรายการแจ้งซ่อม และส่งอีเมลเรียบร้อยแล้วค่ะ',
           icon: 'success',
-          confirmButtonText: 'รับทราบ',
+          confirmButtonText: 'ตกลง',
           confirmButtonColor: '#2563eb',
           customClass: { popup: 'rounded-2xl' }
         });
@@ -129,11 +211,8 @@
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
         
-        // สั่งให้ตารางรีเฟรชอัปเดตข้อมูลใหม่ในอีก 1 วินาทีถัดไป
-        setTimeout(() => {
-          const iframe = document.querySelector('iframe[src*="spreadsheets"]');
-          if(iframe) iframe.src = iframe.src;
-        }, 1000);
+        // รอ 1.5 วิให้ชีตอัปเดต แล้วรีเฟรชตารางสวยๆ ฝั่งขวาทันที
+        setTimeout(loadTickets, 1500);
       }, 1800);
     }
   </script>
