@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT CARE - TU RAC</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+
+  <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-gray-900">💻 ระบบแจ้งซ่อม / แก้ไขระบบ (IT CARE)</h1>
+      <p class="text-gray-600 mt-2">สถาบันวิจัยและให้คำปรึกษาแห่งมหาวิทยาลัยธรรมศาสตร์ (TU RAC)</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">📝 ฟอร์มแจ้งซ่อม</h2>
+        <form id="repairForm" onsubmit="submitForm(event)">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">ชื่องาน / ฝ่าย</label>
+              <select id="departmentSelect" name="department" required onchange="updateNameDropdown()" class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
+                <option value="">-- เลือกชื่องาน / ฝ่าย --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">ชื่อผู้แจ้งซ่อม</label>
+              <select id="nameSelect" name="name" required disabled class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-gray-50 cursor-not-allowed">
+                <option value="">-- กรุณาเลือกชื่องานก่อน --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">หมวดหมู่ปัญหา</label>
+              <select name="category" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
+                <option value="Hardware">Hardware (คอมพิวเตอร์, ปริ้นเตอร์, จอภาพ)</option>
+                <option value="Software">Software (Windows, โปรแกรมต่างๆ)</option>
+                <option value="Network">Network / Internet</option>
+                <option value="Account">Account / Email / Password</option>
+                <option value="Other">อื่นๆ</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">รายละเอียดปัญหา</label>
+              <textarea name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย..."></textarea>
+            </div>
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm cursor-pointer shadow-sm">
+              ส่งข้อมูลแจ้งซ่อม
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center flex flex-col justify-center items-center">
+        <div class="text-6xl mb-4">🚀</div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">ระบบบันทึกข้อมูล IT CARE</h2>
+        <p class="text-gray-500 max-w-md">ยินดีต้อนรับสู่หน้าแจ้งซ่อมออนไลน์พนักงานสามารถกรอกข้อมูลฝั่งซ้ายมือเพื่อส่งเรื่องหาเจ้าหน้าที่ IT ได้ทันทีอย่างปลอดภัยค่ะ</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const tuRacStaffDB = {
+      "ฝ่ายบริหาร": ["พรพรรณ สังเกตุการณ์ (จอย)"],
+      "งานบริหารการวิจัย": ["วรรณา แก้วพวง (นา)", "น้ำทิพย์ มีขันทอง (นก)", "ศศินันท์ ลิมพวัฒน์ (ชมพู่)", "สุจิตรา เผ่าชวด (ส้ม)", "นภาพร สมภักดี (นัท)", "เพียงนภา สุขสมพงษ์ (ออย)", "รัศมี พิมพ์วันวงศ์ (ตาล)", "กนกวรรณ อบเชย (พิมพ์1)", "รัตนาภรณ์ ศรแก้วดารา (ลูกปลา)", "กรกนก จิรสถิตพรพงศ์ (พิมพ์2)", "ปณิดา ส่งเสริม (ฝน)", "สุธิดา คำสวาสดิ์ (แน๊ต)", "ณัฐณี เงินกระแชง (ชีส)"],
+      "งานบัญชีและการเงิน": ["กานติมา พงษ์ศักดิ์ (กาน)", "จินตญาณ อภินันทกุล (จิน)", "ทิพย์สุวรรณ แจ่มเหมือน (บิ้วตี้)", "ธีรนุช สุทธิแก้ว (โบว์)", "ฐิติพร อ่วมเรืองศรี (ตอง)", "ปวริศา นวะมะรัตน (ส้มโอ)", "บิสมินลาห์ แมะตีเมาะ (ไลลา)"],
+      "งานสนับสนุนการวิจัย": ["ชลธิชา ชินสะอาด (หยก)", "พิพัฒน์พงศ์ โทธรรม (บูม)", "อรจิรา ขันธ์เงิน (พลอย)", "สิรินภา เพิ่มสกุลสิน (แนท)"],
+      "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
+    };
+
+    // 🔗 🌟 แก้ไข: เอาลิงก์ Web App (URL /exec) ของคุณมาใส่ตรงนี้แทนในเครื่องหมายคำพูดครับ
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const deptSelect = document.getElementById("departmentSelect");
+      Object.keys(tuRacStaffDB).forEach(dept => {
+        const option = document.createElement("option");
+        option.value = dept;
+        option.text = dept;
+        deptSelect.appendChild(option);
+      });
+    });
+
+    function updateNameDropdown() {
+      const deptSelect = document.getElementById("departmentSelect");
+      const nameSelect = document.getElementById("nameSelect");
+      const selectedDept = deptSelect.value;
+      nameSelect.innerHTML = '<option value="">-- เลือกชื่อผู้แจ้งซ่อม --</option>';
+
+      if (selectedDept && tuRacStaffDB[selectedDept]) {
+        nameSelect.disabled = false;
+        nameSelect.classList.remove("bg-gray-50", "cursor-not-allowed");
+        nameSelect.classList.add("bg-white");
+        tuRacStaffDB[selectedDept].forEach(staff => {
+          const option = document.createElement("option");
+          option.value = staff;
+          option.text = staff;
+          nameSelect.appendChild(option);
+        });
+      } else {
+        nameSelect.disabled = true;
+        nameSelect.classList.remove("bg-white");
+        nameSelect.classList.add("bg-gray-50", "cursor-not-allowed");
+      }
+    }
+
+    function submitForm(e) {
+      e.preventDefault();
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึก...";
+
+      const form = document.getElementById("repairForm");
+      const formData = {
+        name: form.name.value,
+        department: form.department.value,
+        category: form.category.value,
+        description: form.description.value
+      };
+
+      // ส่งข้อมูลข้ามระบบไปยัง Google Sheets ตัวจริง
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", // อนุญาตให้ยิงข้ามโดเมนได้แบบปลอดภัย
+        cache: "no-cache",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      }).then(() => {
+        Swal.fire({
+          title: 'แจ้งซ่อมสำเร็จ!',
+          text: 'ข้อมูลของคุณถูกบันทึกลงระบบ IT CARE และส่งอีเมลหาเจ้าหน้าที่เรียบร้อยแล้วค่ะ',
+          icon: 'success',
+          confirmButtonText: 'ตกลง',
+          confirmButtonColor: '#2563eb',
+          customClass: { popup: 'rounded-2xl' }
+        });
+        form.reset();
+        updateNameDropdown();
+        btn.disabled = false;
+        btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
+      }).catch(err => {
+        Swal.fire({ title: 'เกิดข้อผิดพลาด', text: err.toString(), icon: 'error' });
+        btn.disabled = false;
+        btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
+      });
+    }
+  </script>
+</body>
+</html>
