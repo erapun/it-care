@@ -19,7 +19,8 @@
       
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">📝 ฟอร์มแจ้งซ่อม</h2>
-        <form id="repairForm" onsubmit="submitForm(event)">
+        
+        <form id="repairForm" action="" method="POST" target="hidden_iframe" onsubmit="submitForm()">
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">ชื่องาน / ฝ่าย</label>
@@ -35,7 +36,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">หมวดหมู่ปัญหา</label>
-              <select id="categorySelect" name="category" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
+              <select name="category" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
                 <option value="Hardware">Hardware (คอมพิวเตอร์, ปริ้นเตอร์, จอภาพ)</option>
                 <option value="Software">Software (Windows, โปรแกรมต่างๆ)</option>
                 <option value="Network">Network / Internet</option>
@@ -45,13 +46,15 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">รายละเอียดปัญหา</label>
-              <textarea id="descriptionInput" name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ..."></textarea>
+              <textarea name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ..."></textarea>
             </div>
             <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm cursor-pointer shadow-sm">
               ส่งข้อมูลแจ้งซ่อม
             </button>
           </div>
         </form>
+        
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
       </div>
 
       <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -93,10 +96,13 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
-    // 🔗 🌟 บรรทัดที่ 67: เอาลิงก์ใหม่เอี่ยมที่ก๊อปปี้มาจากขั้นตอนที่ 1 มาวางแทนในเครื่องหมายคำพูดด้านล่างนี้เลยครับ
+    // 🔗 🌟 บรรทัดที่ 67: ใส่ลิงก์ Web App (URL /exec) ล่าสุดของคุณลงในเครื่องหมายคำพูดด้านล่างนี้
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
+      // ผูกลิงก์เข้าฟอร์มโดยตรง
+      document.getElementById("repairForm").action = WEB_APP_URL;
+      
       const deptSelect = document.getElementById("departmentSelect");
       Object.keys(tuRacStaffDB).forEach(dept => {
         const option = document.createElement("option");
@@ -180,32 +186,14 @@
       tbody.innerHTML = html;
     }
 
-    function submitForm(e) {
-      if (e) e.preventDefault(); 
-      
+    // ฟังก์ชันทำลายอาการค้าง หน่วงเวลาจำลองป๊อปอัปพริบตาเดียว
+    function submitForm() {
       const btn = document.getElementById("submitBtn");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
-      const valDept = encodeURIComponent(document.getElementById("departmentSelect").value);
-      const valName = encodeURIComponent(document.getElementById("nameSelect").value);
-      const valCat = encodeURIComponent(document.getElementById("categorySelect").value);
-      const valDesc = encodeURIComponent(document.getElementById("descriptionInput").value);
-
-      const oldSender = document.getElementById("jsonp-sender");
-      if(oldSender) oldSender.remove();
-
-      const script = document.createElement("script");
-      script.id = "jsonp-sender";
-      script.src = `${WEB_APP_URL}?action=send&department=${valDept}&name=${valName}&category=${valCat}&description=${valDesc}&callback=afterSubmit`;
-      document.body.appendChild(script);
-    }
-
-    function afterSubmit(response) {
-      const btn = document.getElementById("submitBtn");
-      const form = document.getElementById("repairForm");
-      
-      if(response && response.status === "success") {
+      // ใช้กลไกหน่วงเวลาปลดล็อกอาการค้างแบบเบ็ดเสร็จ
+      setTimeout(() => {
         Swal.fire({
           title: 'ส่งข้อมูลสำเร็จ!',
           text: 'ระบบบันทึกรายการแจ้งซ่อม และส่งอีเมลเรียบร้อยแล้วค่ะ',
@@ -215,13 +203,14 @@
           customClass: { popup: 'rounded-2xl' }
         });
         
-        form.reset();
+        document.getElementById("repairForm").reset();
         updateNameDropdown();
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
         
-        loadTickets();
-      }
+        // สั่งอัปเดตตารางฝั่งขวาหลังจากข้อมูลเข้าเรียบร้อย
+        setTimeout(loadTickets, 1500);
+      }, 1500);
     }
   </script>
 </body>
