@@ -93,7 +93,7 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
-    // 🔗 🌟 แก้ไข: เอาลิงก์ Web App (URL /exec) ของคุณมาใส่แทนในเครื่องหมายคำพูดด้านล่างนี้ครับ
+    // 🔗 🌟 วางลิงก์ Web App ใหม่ของคุณในเครื่องหมายคำพูดด้านล่างนี้แทนลิงก์เก่าครับ
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -132,8 +132,6 @@
 
     function loadTickets() {
       const tbody = document.getElementById("ticketTableBody");
-      tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-400">กำลังโหลดตารางข้อมูล...</td></tr>`;
-      
       const oldScript = document.getElementById("jsonp-fetcher");
       if(oldScript) oldScript.remove();
 
@@ -182,7 +180,6 @@
       tbody.innerHTML = html;
     }
 
-    // 🚀 ฟังก์ชันส่งข้อมูลเวอร์ชันเสถียร แก้ไขปัญหาเบราว์เซอร์ของบางคนกดไม่ได้
     function submitForm(e) {
       if (e) e.preventDefault(); 
       
@@ -191,19 +188,25 @@
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
       const form = document.getElementById("repairForm");
-      const formData = new URLSearchParams();
-      formData.append("department", form.department.value);
-      formData.append("name", form.name.value);
-      formData.append("category", form.category.value);
-      formData.append("description", form.description.value);
+      const dept = encodeURIComponent(form.department.value);
+      const name = encodeURIComponent(form.name.value);
+      const cat = encodeURIComponent(form.category.value);
+      const desc = encodeURIComponent(form.description.value);
 
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors", 
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData.toString()
-      })
-      .then(() => {
+      const oldSender = document.getElementById("jsonp-sender");
+      if(oldSender) oldSender.remove();
+
+      const script = document.createElement("script");
+      script.id = "jsonp-sender";
+      script.src = `${WEB_APP_URL}?action=send&department=${dept}&name=${name}&category=${cat}&description=${desc}&callback=afterSubmit`;
+      document.body.appendChild(script);
+    }
+
+    function afterSubmit(response) {
+      const btn = document.getElementById("submitBtn");
+      const form = document.getElementById("repairForm");
+      
+      if(response.status === "success") {
         Swal.fire({
           title: 'ส่งข้อมูลสำเร็จ!',
           text: 'ระบบบันทึกรายการแจ้งซ่อม และส่งอีเมลเรียบร้อยแล้วค่ะ',
@@ -218,13 +221,8 @@
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
         
-        setTimeout(loadTickets, 1500);
-      })
-      .catch(err => {
-        Swal.fire({ title: 'เกิดข้อผิดพลาด', text: 'กรุณาลองใหม่อีกครั้ง', icon: 'error' });
-        btn.disabled = false;
-        btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
-      });
+        loadTickets();
+      }
     }
   </script>
 </body>
