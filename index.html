@@ -35,7 +35,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">หมวดหมู่ปัญหา</label>
-              <select name="category" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
+              <select id="categorySelect" name="category" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
                 <option value="Hardware">Hardware (คอมพิวเตอร์, ปริ้นเตอร์, จอภาพ)</option>
                 <option value="Software">Software (Windows, โปรแกรมต่างๆ)</option>
                 <option value="Network">Network / Internet</option>
@@ -45,7 +45,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">รายละเอียดปัญหา</label>
-              <textarea name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ..."></textarea>
+              <textarea id="descriptionInput" name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ..."></textarea>
             </div>
             <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm cursor-pointer shadow-sm">
               ส่งข้อมูลแจ้งซ่อม
@@ -93,7 +93,7 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
-    // 🔗 🌟 วางลิงก์ Web App ใหม่ของคุณในเครื่องหมายคำพูดด้านล่างนี้แทนลิงก์เก่าครับ
+    // 🔗 🌟 บรรทัดที่ 67: ใส่ลิงก์ Web App (URL /exec) ตัวจริงของคุณลงในเครื่องหมายคำพูดด้านล่างนี้เลยครับ
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -180,6 +180,7 @@
       tbody.innerHTML = html;
     }
 
+    // 🛠️ ปรับแก้ระบบดึงค่าราย ID ป้องกันค่าว่างหลุดลอยหายระหว่างทาง
     function submitForm(e) {
       if (e) e.preventDefault(); 
       
@@ -187,18 +188,19 @@
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
-      const form = document.getElementById("repairForm");
-      const dept = encodeURIComponent(form.department.value);
-      const name = encodeURIComponent(form.name.value);
-      const cat = encodeURIComponent(form.category.value);
-      const desc = encodeURIComponent(form.description.value);
+      // ดึงค่าโดยตรงผ่าน ID ของแต่ละกล่องข้อความ ชัวร์ 100%
+      const valDept = encodeURIComponent(document.getElementById("departmentSelect").value);
+      const valName = encodeURIComponent(document.getElementById("nameSelect").value);
+      const valCat = encodeURIComponent(document.getElementById("categorySelect").value);
+      const valDesc = encodeURIComponent(document.getElementById("descriptionInput").value);
 
       const oldSender = document.getElementById("jsonp-sender");
       if(oldSender) oldSender.remove();
 
+      // ส่งสัญญาณออกไปหาหลังบ้านพร้อม Callback
       const script = document.createElement("script");
       script.id = "jsonp-sender";
-      script.src = `${WEB_APP_URL}?action=send&department=${dept}&name=${name}&category=${cat}&description=${desc}&callback=afterSubmit`;
+      script.src = `${WEB_APP_URL}?action=send&department=${valDept}&name=${valName}&category=${valCat}&description=${valDesc}&callback=afterSubmit`;
       document.body.appendChild(script);
     }
 
@@ -206,7 +208,7 @@
       const btn = document.getElementById("submitBtn");
       const form = document.getElementById("repairForm");
       
-      if(response.status === "success") {
+      if(response && response.status === "success") {
         Swal.fire({
           title: 'ส่งข้อมูลสำเร็จ!',
           text: 'ระบบบันทึกรายการแจ้งซ่อม และส่งอีเมลเรียบร้อยแล้วค่ะ',
@@ -221,6 +223,7 @@
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
         
+        // โหลดตารางใหม่ทันทีหลังบันทึกเสร็จ
         loadTickets();
       }
     }
