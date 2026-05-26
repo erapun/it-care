@@ -93,7 +93,7 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
-    // 🔗 🌟 บรรทัดที่ 67: ใส่ลิงก์ Web App (URL /exec) ล่าสุดของคุณลงในเครื่องหมายคำพูดด้านล่างนี้
+    // 🔗 🌟 บรรทัดที่ 67: ใส่ลิงก์ Web App ล่าสุดของคุณลงไปในเครื่องหมายคำพูดด้านล่างนี้
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -180,7 +180,7 @@
       tbody.innerHTML = html;
     }
 
-    // 🛠️ ปรับเปลี่ยนระบบมาใช้ Fetch API มาตรฐานสากลเพื่อการดักจับบั๊กแบบ 100%
+    // ระบบส่งข้อมูลแบบ JSONP ขาไป เสถียรและปลดล็อกปัญหา CORS ข้ามแดน
     function submitForm(e) {
       if (e) e.preventDefault();
       
@@ -188,53 +188,42 @@
       btn.disabled = true;
       btn.innerText = "กำลังส่งข้อมูล...";
 
-      const valDept = document.getElementById("departmentSelect").value;
-      const valName = document.getElementById("nameSelect").value;
-      const valCat = document.getElementById("categorySelect").value;
-      const valDesc = document.getElementById("descriptionInput").value;
+      const valDept = encodeURIComponent(document.getElementById("departmentSelect").value);
+      const valName = encodeURIComponent(document.getElementById("nameSelect").value);
+      const valCat = encodeURIComponent(document.getElementById("categorySelect").value);
+      const valDesc = encodeURIComponent(document.getElementById("descriptionInput").value);
 
-      // แพ็กข้อมูลส่งแบบฟอร์มมาตรฐาน
-      const formData = new FormData();
-      formData.append("department", valDept);
-      formData.append("name", valName);
-      formData.append("category", valCat);
-      formData.append("description", valDesc);
+      const oldSender = document.getElementById("jsonp-sender");
+      if(oldSender) oldSender.remove();
 
-      // ยิงข้อมูลไปหากูเกิลด้วย Fetch และเปิดระบบดักจับ Error
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        body: formData,
-        mode: "no-cors" // หลบระเบิดระบบบล็อกของเบราว์เซอร์
-      })
-      .then(() => {
-        // หากส่งผ่านสำเร็จ (แม้จะติด no-cors แต่ข้อมูลจะไหลเข้าชีตและเมลจะเด้งทันที)
+      // บังคับยิงข้อมูลผ่านท่อคำสั่ง action=send
+      const script = document.createElement("script");
+      script.id = "jsonp-sender";
+      script.src = `${WEB_APP_URL}?action=send&department=${valDept}&name=${valName}&category=${valCat}&description=${valDesc}&callback=afterSubmit`;
+      document.body.appendChild(script);
+    }
+
+    function afterSubmit(response) {
+      const btn = document.getElementById("submitBtn");
+      const form = document.getElementById("repairForm");
+      
+      if(response && response.status === "success") {
         Swal.fire({
           title: 'ส่งข้อมูลสำเร็จ!',
-          text: 'ระบบส่งข้อมูลเข้า Google Sheets และแจ้งเตือนทางอีเมลแล้วค่ะ',
+          text: 'ระบบบันทึกรายการแจ้งซ่อม และส่งอีเมลเรียบร้อยแล้วค่ะ',
           icon: 'success',
           confirmButtonText: 'ตกลง',
           confirmButtonColor: '#2563eb',
           customClass: { popup: 'rounded-2xl' }
         });
         
-        document.getElementById("repairForm").reset();
+        form.reset();
         updateNameDropdown();
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
         
-        setTimeout(loadTickets, 1500);
-      })
-      .catch((error) => {
-        // ถ้าพัง ระบบจะเด้งป๊อปอัปสีแดงบอกเราทันทีว่าพังตรงไหน!
-        Swal.fire({
-          title: 'เกิดข้อผิดพลาด!',
-          text: 'ไม่สามารถติดต่อหลังบ้านได้: ' + error.message,
-          icon: 'error',
-          confirmButtonText: 'ตกลง'
-        });
-        btn.disabled = false;
-        btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
-      });
+        loadTickets();
+      }
     }
   </script>
 </body>
