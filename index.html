@@ -93,7 +93,7 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
-    // 🔗 🌟 บรรทัดที่ 67: ใส่ลิงก์ Web App (URL /exec) ตัวจริงของคุณลงในเครื่องหมายคำพูดด้านล่างนี้เลยครับ
+    // 🔗 🌟 บรรทัดที่ 67: เอาลิงก์ใหม่เอี่ยมที่ก๊อปปี้มาจากขั้นตอนที่ 1 มาวางแทนในเครื่องหมายคำพูดด้านล่างนี้เลยครับ
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -180,7 +180,6 @@
       tbody.innerHTML = html;
     }
 
-    // 🛠️ ปรับแก้ระบบดึงค่าราย ID ป้องกันค่าว่างหลุดลอยหายระหว่างทาง
     function submitForm(e) {
       if (e) e.preventDefault(); 
       
@@ -188,7 +187,6 @@
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
-      // ดึงค่าโดยตรงผ่าน ID ของแต่ละกล่องข้อความ ชัวร์ 100%
       const valDept = encodeURIComponent(document.getElementById("departmentSelect").value);
       const valName = encodeURIComponent(document.getElementById("nameSelect").value);
       const valCat = encodeURIComponent(document.getElementById("categorySelect").value);
@@ -197,7 +195,6 @@
       const oldSender = document.getElementById("jsonp-sender");
       if(oldSender) oldSender.remove();
 
-      // ส่งสัญญาณออกไปหาหลังบ้านพร้อม Callback
       const script = document.createElement("script");
       script.id = "jsonp-sender";
       script.src = `${WEB_APP_URL}?action=send&department=${valDept}&name=${valName}&category=${valCat}&description=${valDesc}&callback=afterSubmit`;
@@ -223,7 +220,6 @@
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
         
-        // โหลดตารางใหม่ทันทีหลังบันทึกเสร็จ
         loadTickets();
       }
     }
