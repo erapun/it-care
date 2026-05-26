@@ -22,21 +22,18 @@
         
         <form id="repairForm" action="https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec" method="POST" target="hidden_iframe" onsubmit="submitForm()">
           <div class="space-y-4">
-            
             <div>
               <label class="block text-sm font-medium text-gray-700">ชื่องาน / ฝ่าย</label>
               <select id="departmentSelect" name="department" required onchange="updateNameDropdown()" class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
                 <option value="">-- เลือกชื่องาน / ฝ่าย --</option>
               </select>
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700">ชื่อผู้แจ้งซ่อม</label>
               <select id="nameSelect" name="name" required disabled class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-gray-50 cursor-not-allowed">
                 <option value="">-- กรุณาเลือกชื่องานก่อน --</option>
               </select>
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700">หมวดหมู่ปัญหา</label>
               <select name="category" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none bg-white">
@@ -47,31 +44,23 @@
                 <option value="Other">อื่นๆ</option>
               </select>
             </div>
-
             <div>
               <label class="block text-sm font-medium text-gray-700">รายละเอียดปัญหา</label>
-              <textarea name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย หรือปัญหาที่พบ..."></textarea>
+              <textarea name="description" rows="3" required class="mt-1 block w-full rounded-lg border border-gray-300 p-2 text-sm focus:outline-none" placeholder="ระบุอาการเสีย..."></textarea>
             </div>
-
-            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm cursor-pointer shadow-sm transition duration-200">
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm cursor-pointer shadow-sm">
               ส่งข้อมูลแจ้งซ่อม
             </button>
           </div>
         </form>
-        
         <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
       </div>
 
-      <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center flex flex-col justify-center items-center min-h-[420px]">
-        <div class="text-6xl mb-4 animate-bounce">🚀</div>
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">ระบบบันทึกข้อมูล IT CARE</h2>
-        <p class="text-gray-500 max-w-md mb-6 text-sm sm:text-base">ยินดีต้อนรับสู่หน้าแจ้งซ่อมออนไลน์ของ TU RAC พนักงานสามารถกรอกข้อมูลฝั่งซ้ายมือเพื่อส่งเรื่องตรงหาเจ้าหน้าที่ IT ได้ทันทีอย่างปลอดภัยค่ะ</p>
+      <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">🔍 รายการสถานะการแจ้งซ่อม</h2>
         
-        <div class="border-t border-gray-100 pt-6 w-full max-w-sm">
-          <p class="text-xs text-gray-400 mb-2">สำหรับเจ้าหน้าที่ในการตรวจสอบหรือแก้ไขสถานะงาน</p>
-          <p class="text-sm font-medium text-blue-600 bg-blue-50 py-2 px-4 rounded-xl border border-blue-100">
-            โปรดจัดการสถานะ/ใส่ IT Notes ผ่านหน้า Google Sheets โดยตรง
-          </p>
+        <div class="w-full h-[450px] overflow-hidden rounded-xl border border-gray-100">
+          <iframe src="https://docs.google.com/spreadsheets/d/1VrAyJzvYTHK5D5JCqW_0HgxBRI6u1l2Dfuu9IYGoZPA/htmlembed?widget=false&headers=false&chrome=false&gid=0" class="w-full h-full border-0"></iframe>
         </div>
       </div>
 
@@ -79,7 +68,6 @@
   </div>
 
   <script>
-    // ฐานข้อมูลรายชื่อเจ้าหน้าที่ TU RAC
     const tuRacStaffDB = {
       "ฝ่ายบริหาร": ["พรพรรณ สังเกตุการณ์ (จอย)"],
       "งานบริหารการวิจัย": ["วรรณา แก้วพวง (นา)", "น้ำทิพย์ มีขันทอง (นก)", "ศศินันท์ ลิมพวัฒน์ (ชมพู่)", "สุจิตรา เผ่าชวด (ส้ม)", "นภาพร สมภักดี (นัท)", "เพียงนภา สุขสมพงษ์ (ออย)", "รัศมี พิมพ์วันวงศ์ (ตาล)", "กนกวรรณ อบเชย (พิมพ์1)", "รัตนาภรณ์ ศรแก้วดารา (ลูกปลา)", "กรกนก จิรสถิตพรพงศ์ (พิมพ์2)", "ปณิดา ส่งเสริม (ฝน)", "สุธิดา คำสวาสดิ์ (แน๊ต)", "ณัฐณี เงินกระแชง (ชีส)"],
@@ -88,7 +76,6 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
-    // โดดชื่องานเข้าเมนูตัวเลือกตอนเปิดหน้าเว็บ
     document.addEventListener("DOMContentLoaded", function() {
       const deptSelect = document.getElementById("departmentSelect");
       Object.keys(tuRacStaffDB).forEach(dept => {
@@ -99,7 +86,6 @@
       });
     });
 
-    // เปลี่ยนรายชื่อคนตามฝ่ายงานที่เลือก
     function updateNameDropdown() {
       const deptSelect = document.getElementById("departmentSelect");
       const nameSelect = document.getElementById("nameSelect");
@@ -123,17 +109,15 @@
       }
     }
 
-    // ฟังก์ชันทำงานตอนกดส่งข้อมูลซ่อม
     function submitForm() {
       const btn = document.getElementById("submitBtn");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
-      // หน่วงเวลาสั้นๆ เพื่อจำลองการรอผลตอบกลับ และยิงป๊อปอัปแจ้งความสำเร็จ
       setTimeout(() => {
         Swal.fire({
           title: 'ส่งข้อมูลสำเร็จ!',
-          text: 'ระบบได้บันทึกรายการแจ้งซ่อมและส่งอีเมลแจ้งเตือนไปยังเจ้าหน้าที่เรียบร้อยแล้วค่ะ',
+          text: 'ระบบได้บันทึกรายการแจ้งซ่อมเข้า Google Sheets เรียบร้อยแล้วค่ะ',
           icon: 'success',
           confirmButtonText: 'รับทราบ',
           confirmButtonColor: '#2563eb',
@@ -144,6 +128,12 @@
         updateNameDropdown();
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
+        
+        // สั่งให้ตารางรีเฟรชอัปเดตข้อมูลใหม่ในอีก 1 วินาทีถัดไป
+        setTimeout(() => {
+          const iframe = document.querySelector('iframe[src*="spreadsheets"]');
+          if(iframe) iframe.src = iframe.src;
+        }, 1000);
       }, 1800);
     }
   </script>
