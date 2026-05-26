@@ -19,7 +19,7 @@
       
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">📝 ฟอร์มแจ้งซ่อม</h2>
-        <form id="repairForm" action="" method="POST" target="hidden_iframe" onsubmit="submitForm()">
+        <form id="repairForm" onsubmit="submitForm(event)">
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">ชื่องาน / ฝ่าย</label>
@@ -52,7 +52,6 @@
             </button>
           </div>
         </form>
-        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
       </div>
 
       <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -86,7 +85,6 @@
   </div>
 
   <script>
-    // ฐานข้อมูลรายชื่อเจ้าหน้าที่ TU RAC
     const tuRacStaffDB = {
       "ฝ่ายบริหาร": ["พรพรรณ สังเกตุการณ์ (จอย)"],
       "งานบริหารการวิจัย": ["วรรณา แก้วพวง (นา)", "น้ำทิพย์ มีขันทอง (นก)", "ศศินันท์ ลิมพวัฒน์ (ชมพู่)", "สุจิตรา เผ่าชวด (ส้ม)", "นภาพร สมภักดี (นัท)", "เพียงนภา สุขสมพงษ์ (ออย)", "รัศมี พิมพ์วันวงศ์ (ตาล)", "กนกวรรณ อบเชย (พิมพ์1)", "รัตนาภรณ์ ศรแก้วดารา (ลูกปลา)", "กรกนก จิรสถิตพรพงศ์ (พิมพ์2)", "ปณิดา ส่งเสริม (ฝน)", "สุธิดา คำสวาสดิ์ (แน๊ต)", "ณัฐณี เงินกระแชง (ชีส)"],
@@ -95,13 +93,10 @@
       "งานบริหารสำนักงาน": ["สุวรรณี ติวะตันสกุล (ณี)", "ปฐมกานต์ บุนนาค (แพ)", "หทัยชนก พุ่มไสล (เจนนี่)", "ธนกร สุริยะชูโชค (แบงค์)"]
     };
 
-    // 🔗 🌟 แก้ไข: เอาลิงก์ Web App (URL /exec) ของคุณมาใส่ตรงนี้แทนในเครื่องหมายคำพูดครับ
+    // 🔗 🌟 แก้ไข: เอาลิงก์ Web App (URL /exec) ของคุณมาใส่แทนในเครื่องหมายคำพูดด้านล่างนี้ครับ
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4KlCiSNpE6yON4MUD9MELX4Oxa29JwINzzEt1hCmvA6nwt1PwkyMEAywd8b50EC8xTw/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
-      // เซ็ตลิงก์ฟอร์มอัตโนมัติ
-      document.getElementById("repairForm").action = WEB_APP_URL;
-      
       const deptSelect = document.getElementById("departmentSelect");
       Object.keys(tuRacStaffDB).forEach(dept => {
         const option = document.createElement("option");
@@ -135,23 +130,19 @@
       }
     }
 
-    // 🚀 ฟังก์ชันดึงตารางข้อมูลระดับหรู ด้วยเทคนิคทะลวง CORS (JSONP Script Injection)
     function loadTickets() {
       const tbody = document.getElementById("ticketTableBody");
       tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-400">กำลังโหลดตารางข้อมูล...</td></tr>`;
       
-      // ลบสคริปต์เก่าออกก่อนดึงใหม่
       const oldScript = document.getElementById("jsonp-fetcher");
       if(oldScript) oldScript.remove();
 
-      // สร้างตัวรับสัญญาณทะลุ CORS
       const script = document.createElement("script");
       script.id = "jsonp-fetcher";
       script.src = `${WEB_APP_URL}?action=get&callback=renderTable`;
       document.body.appendChild(script);
     }
 
-    // 🎨 ฟังก์ชันวาดตารางหน้าตาคลีนหรูหรา (ตามสเปกรูปภาพที่ 2)
     function renderTable(response) {
       const tbody = document.getElementById("ticketTableBody");
       if (response.status !== "success" || !response.data || response.data.length === 0) {
@@ -191,12 +182,28 @@
       tbody.innerHTML = html;
     }
 
-    function submitForm() {
+    // 🚀 ฟังก์ชันส่งข้อมูลเวอร์ชันเสถียร แก้ไขปัญหาเบราว์เซอร์ของบางคนกดไม่ได้
+    function submitForm(e) {
+      if (e) e.preventDefault(); 
+      
       const btn = document.getElementById("submitBtn");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
-      setTimeout(() => {
+      const form = document.getElementById("repairForm");
+      const formData = new URLSearchParams();
+      formData.append("department", form.department.value);
+      formData.append("name", form.name.value);
+      formData.append("category", form.category.value);
+      formData.append("description", form.description.value);
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", 
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString()
+      })
+      .then(() => {
         Swal.fire({
           title: 'ส่งข้อมูลสำเร็จ!',
           text: 'ระบบบันทึกรายการแจ้งซ่อม และส่งอีเมลเรียบร้อยแล้วค่ะ',
@@ -206,14 +213,18 @@
           customClass: { popup: 'rounded-2xl' }
         });
         
-        document.getElementById("repairForm").reset();
+        form.reset();
         updateNameDropdown();
         btn.disabled = false;
         btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
         
-        // รอ 1.5 วิให้ชีตอัปเดต แล้วรีเฟรชตารางสวยๆ ฝั่งขวาทันที
         setTimeout(loadTickets, 1500);
-      }, 1800);
+      })
+      .catch(err => {
+        Swal.fire({ title: 'เกิดข้อผิดพลาด', text: 'กรุณาลองใหม่อีกครั้ง', icon: 'error' });
+        btn.disabled = false;
+        btn.innerText = "ส่งข้อมูลแจ้งซ่อม";
+      });
     }
   </script>
 </body>
