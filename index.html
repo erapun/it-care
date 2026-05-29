@@ -210,7 +210,7 @@
 
             Promise.all([sendToSheet, sendToEmail])
             .then(() => {
-                alert('IT CARE TU-RAC รับเรื่องเรียบร้อยแล้ว และส่งเมลแจ้งเตือนช่างแล้ว!');
+                alert('IT CARE TU-RAC รับเรื่องเรียบร้อยแล้ว!');
                 form.reset();
                 document.getElementById('userName').innerHTML = '<option value="" disabled selected>-- กรุณาเลือกงาน/ฝ่ายก่อน --</option>';
                 btn.disabled = false;
